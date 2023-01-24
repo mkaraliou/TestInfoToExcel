@@ -8,8 +8,6 @@ namespace GetterTestInfo_Pvs.Taf
         {
             var testProjectName = args[0].Split('\\').Last().Split(".dll").First();
 
-            Console.WriteLine(testProjectName);
-
             Assembly sampleAssembly = Assembly.LoadFrom(args[0]);
 
             var types = sampleAssembly.GetTypes().Where(t => t.FullName.Contains($"{testProjectName}.Tests")).ToList();
