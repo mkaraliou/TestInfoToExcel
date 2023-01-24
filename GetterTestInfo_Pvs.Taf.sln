@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetterTestInfo_Pvs.Taf", "GetterTestInfo_Pvs.Taf\GetterTestInfo_Pvs.Taf.csproj", "{FF66818F-A5BC-4F4D-B080-9F9EC08AF91E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FF66818F-A5BC-4F4D-B080-9F9EC08AF91E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF66818F-A5BC-4F4D-B080-9F9EC08AF91E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF66818F-A5BC-4F4D-B080-9F9EC08AF91E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF66818F-A5BC-4F4D-B080-9F9EC08AF91E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8208CFC7-0F5F-4EB9-A5BA-5E420CB93A92}
+	EndGlobalSection
+EndGlobal
