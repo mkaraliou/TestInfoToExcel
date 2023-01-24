@@ -45,8 +45,8 @@ namespace GetterTestInfo_Pvs.Taf
 
         private void FillLineForMethod(IXLWorksheet worksheet, MethodInfo method, int lineNumber)
         {
-            FillCellClass(worksheet, method, lineNumber);
-            FillCellTestName(worksheet, method, lineNumber);
+            FillCellClass(worksheet, lineNumber, method.ReflectedType.Name);
+            FillCellTestName(worksheet, lineNumber, method.Name);
             FillCellValuesFromConstructor(worksheet, method, "TestCaseId", lineNumber);
             FillCellCategory(worksheet, method, lineNumber);
             FillCellValuesFromConstructor(worksheet, method, "Priority", lineNumber);
@@ -54,16 +54,57 @@ namespace GetterTestInfo_Pvs.Taf
             FillCellProperty(worksheet, method, lineNumber);
         }
 
-        private void FillCellClass(IXLWorksheet worksheet, MethodInfo method, int lineNumber)
+        private void AddDataDrivenTests(List<Type> types, IXLWorksheet worksheet, int lineNumber)
         {
-            var cellLetter = GetLetterByNumber(columns.IndexOf("Class"));
-            worksheet.Cell(cellLetter + lineNumber).Value = method.ReflectedType.Name;
+            var methods = types.SelectMany(t => t.GetMethods()).ToList();
+            var dataDrivenTests = methods.Where(t => t.CustomAttributes.Any(a => a.AttributeType.Name == "TestCaseSourceAttribute")).ToList();
+
+            foreach (var method in dataDrivenTests)
+            {
+                var className = method.ReflectedType.Name;
+                var methodName = method.Name;
+
+                var testDataMethodName = method.CustomAttributes.First(a => a.AttributeType.Name == "TestCaseSourceAttribute").ConstructorArguments[0].Value;
+
+                var testDataMethod = types.First(t => t.Name == className).GetMethod(
+                    testDataMethodName.ToString(),
+                    BindingFlags.Static | BindingFlags.NonPublic);
+
+                var testDataValues = (IEnumerable)testDataMethod.Invoke(null, null);
+
+                AddDataDrivenTest(worksheet, lineNumber, method, testDataValues);
+            }
         }
 
-        private void FillCellTestName(IXLWorksheet worksheet, MethodInfo method, int lineNumber)
+        private void AddDataDrivenTest(IXLWorksheet worksheet, int lineNumber, MethodInfo method, IEnumerable testDataValues)
+        {
+            foreach (var item in testDataValues)
+            {
+                FillCellCategory(worksheet, method, lineNumber);
+                FillCellClass(worksheet, lineNumber, method.ReflectedType.Name);
+
+                var testCaseData = item as ITestCaseData;
+
+                worksheet.Cell(GetLetterByNumber(columns.IndexOf("Test")) + lineNumber).Value = $"{method.Name} : {testCaseData.TestName}";
+                worksheet.Cell(GetLetterByNumber(columns.IndexOf("TestCaseId")) + lineNumber).Value = testCaseData.Properties.Get("TestCaseId").ToString();
+                worksheet.Cell(GetLetterByNumber(columns.IndexOf("Priority")) + lineNumber).Value = testCaseData.Properties.Get("Priority").ToString();
+                worksheet.Cell(GetLetterByNumber(columns.IndexOf("Description")) + lineNumber).Value = testCaseData.Properties.Get("Description").ToString();
+
+                lineNumber++;
+            }
+
+        }
+
+        private void FillCellClass(IXLWorksheet worksheet, int lineNumber, string value)
+        {
+            var cellLetter = GetLetterByNumber(columns.IndexOf("Class"));
+            worksheet.Cell(cellLetter + lineNumber).Value = value;
+        }
+
+        private void FillCellTestName(IXLWorksheet worksheet, int lineNumber, string testName)
         {
             var cellLetter = GetLetterByNumber(columns.IndexOf("Test"));
-            worksheet.Cell(cellLetter + lineNumber).Value = method.Name;
+            worksheet.Cell(cellLetter + lineNumber).Value = testName;
         }
 
         private void FillCellValuesFromConstructor(IXLWorksheet worksheet, MethodInfo method, string columnName, int lineNumber)
@@ -119,57 +160,6 @@ namespace GetterTestInfo_Pvs.Taf
                 }
 
                 worksheet.Cell(cellLetter + lineNumber).Value = string.Join($"{Environment.NewLine}", propertyValues);
-            }
-        }
-
-        private void AddDataDrivenTests(List<Type> types, IXLWorksheet worksheet, int lineNumber)
-        {
-            var methods = types.SelectMany(t => t.GetMethods()).ToList();
-            var dataDrivenTests = methods.Where(t => t.CustomAttributes.Any(a => a.AttributeType.Name == "TestCaseSourceAttribute")).ToList();
-
-            foreach(var method in dataDrivenTests)
-            {
-                var className = method.ReflectedType.Name;
-                worksheet.Cell(GetLetterByNumber(columns.IndexOf("Class")) + lineNumber).Value = className;
-                var methodName = method.Name;
-
-                FillCellCategory(worksheet, method, lineNumber);
-
-                var testDataMethodName = method.CustomAttributes.First(a => a.AttributeType.Name == "TestCaseSourceAttribute").ConstructorArguments[0].Value;
-
-                var testDataMethod = types.First(t => t.Name == className).GetMethod(
-                    testDataMethodName.ToString(),
-                    BindingFlags.Static | BindingFlags.NonPublic);
-
-                var testDataValues = (IEnumerable)testDataMethod.Invoke(null, null);
-
-                List<string> testNames = new List<string> { $"{methodName}:" };
-                List<string> testCaseIds = new List<string> { string.Empty };
-                List<string> descriptions = new List<string> { string.Empty };
-                List<string> priorities = new List<string> { string.Empty };
-
-                foreach (var item in testDataValues)
-                {
-                    var l = item as ITestCaseData;
-                    testNames.Add(l.TestName.ToString());
-                    testCaseIds.Add(l.Properties.Get("TestCaseId").ToString());
-                    descriptions.Add(l.Properties.Get("Description") as string);
-                    priorities.Add(l.Properties.Get("Priority") as string);
-                }
-
-                worksheet.Cell(GetLetterByNumber(columns.IndexOf("Test")) + lineNumber).Value =
-                    string.Join($"{Environment.NewLine}", testNames);
-
-                worksheet.Cell(GetLetterByNumber(columns.IndexOf("TestCaseId")) + lineNumber).Value =
-                    string.Join($"{Environment.NewLine}", testCaseIds);
-
-                worksheet.Cell(GetLetterByNumber(columns.IndexOf("Priority")) + lineNumber).Value =
-                    string.Join($"{Environment.NewLine}", priorities);
-
-                worksheet.Cell(GetLetterByNumber(columns.IndexOf("Description")) + lineNumber).Value =
-                    string.Join($"{Environment.NewLine}", descriptions);
-
-                lineNumber++;
             }
         }
 

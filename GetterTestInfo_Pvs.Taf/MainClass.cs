@@ -6,10 +6,13 @@ namespace GetterTestInfo_Pvs.Taf
     {
         public static void Main(string[] args)
         {
-            //Assembly sampleAssembly = Assembly.LoadFrom(@"C:\Users\Mikalai_Karaliou\source\repos\Pvs.Taf.Core\Pvs.Taf.V2Smoke\bin\Debug\net6.0\Pvs.Taf.V2Smoke.dll");
+            var testProjectName = args[0].Split('\\').Last().Split(".dll").First();
+
+            Console.WriteLine(testProjectName);
+
             Assembly sampleAssembly = Assembly.LoadFrom(args[0]);
 
-            var types = sampleAssembly.GetTypes().Where(t => t.FullName.Contains("Pvs.Taf.V2Smoke.Tests")).ToList();
+            var types = sampleAssembly.GetTypes().Where(t => t.FullName.Contains($"{testProjectName}.Tests")).ToList();
 
             var msethods = types.SelectMany(t => t.GetMethods()).ToList();
 
